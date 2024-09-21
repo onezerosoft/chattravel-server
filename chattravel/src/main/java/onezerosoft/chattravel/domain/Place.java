@@ -23,5 +23,6 @@ public class Place extends BaseEntity {
 
     private String address;
 
+    private String comment; // 장소에 대한 코멘트
 
 }

@@ -34,7 +34,6 @@ public class Course extends BaseEntity {
 
     private Long restaurant_1;
     private Long restaurant_2;
-    private Long restaurant_3;
 
     private Long cafe_1;
     private Long cafe_2;
