@@ -18,11 +18,19 @@ public class Place extends BaseEntity {
 
     private String placename;
 
-    @Enumerated(EnumType.STRING)
-    private PlaceType type;
+    private String type;
+
+    private String comment; // 장소에 대한 코멘트
 
     private String address;
 
-    private String comment; // 장소에 대한 코멘트
+    private Integer courseOrder; // 코스 내 순서
+
+    private String ratings;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
 
 }

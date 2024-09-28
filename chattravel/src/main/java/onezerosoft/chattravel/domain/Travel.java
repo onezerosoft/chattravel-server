@@ -19,9 +19,7 @@ public class Travel extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    private String username;
 
     @Enumerated(EnumType.STRING)
     private Region region;
@@ -34,11 +32,13 @@ public class Travel extends BaseEntity {
 
     private Integer days;
 
-    @Enumerated(EnumType.STRING)
-    private TravelStatus status;
-
     private String image;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Builder.Default
     @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL)
     private List<Course> courseList = new ArrayList<>();
 

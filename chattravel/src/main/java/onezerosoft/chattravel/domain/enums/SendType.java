@@ -1,5 +1,5 @@
 package onezerosoft.chattravel.domain.enums;
 
 public enum SendType {
-    USER, CHATBOT
+    C_TEXT, C_COURSE, U_TEXT
 }

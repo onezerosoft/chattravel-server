@@ -17,6 +17,6 @@ public class TotalMessageResponse {
     public Integer chatId;
     public String chatname;
     public Integer totalMessageCount;
-    public LocalDateTime createdAt;
     public List<messageDTO> messages;
+    public LocalDateTime createdAt;
 }

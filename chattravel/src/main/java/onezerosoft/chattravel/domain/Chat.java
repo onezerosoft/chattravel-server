@@ -19,13 +19,23 @@ public class Chat extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String username;
+
     private Long userId;
 
     private String chatname;
 
     @Enumerated(EnumType.STRING)
-    private SendType sender;
+    private Region region;
 
+    private String sido;    //시도
+
+    private String si;      //시
+
+    @Enumerated(EnumType.STRING)
+    private ChatStatus status;
+
+    @Builder.Default
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<Message> messageList = new ArrayList<>();
 

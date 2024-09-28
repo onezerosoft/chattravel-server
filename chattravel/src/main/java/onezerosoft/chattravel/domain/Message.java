@@ -3,6 +3,11 @@ package onezerosoft.chattravel.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import onezerosoft.chattravel.domain.common.BaseEntity;
+import onezerosoft.chattravel.domain.enums.CourseType;
+import onezerosoft.chattravel.domain.enums.SendType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -15,7 +20,14 @@ public class Message extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String content;
+    @Enumerated(EnumType.STRING)
+    private SendType type;
+
+    private String message;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Course> courseList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id")

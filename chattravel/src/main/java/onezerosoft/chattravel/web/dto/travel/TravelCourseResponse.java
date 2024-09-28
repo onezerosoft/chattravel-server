@@ -12,7 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TravelCourseResponse {
-    private String region;
+    private String SIDO;
+    private String SI;
     private String travelTitle;
     private Integer days;
     private List<courseDTO> courses;

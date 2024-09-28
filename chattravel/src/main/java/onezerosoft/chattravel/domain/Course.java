@@ -5,6 +5,9 @@ import lombok.*;
 import onezerosoft.chattravel.domain.common.BaseEntity;
 import onezerosoft.chattravel.domain.enums.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -16,6 +19,8 @@ public class Course extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer day;    // 몇일차인지
+
     @Enumerated(EnumType.STRING)
     private CourseType courseType;
 
@@ -23,19 +28,13 @@ public class Course extends BaseEntity {
     @JoinColumn(name = "travel_id")
     private Travel travel;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id")
+    private Message message;
 
-    private Integer day;    // 몇일차인지
 
-    private Long accommodation;
-
-    private Long attraction_1;
-    private Long attraction_2;
-    private Long attraction_3;
-
-    private Long restaurant_1;
-    private Long restaurant_2;
-
-    private Long cafe_1;
-    private Long cafe_2;
+    @Builder.Default
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Place> placeList = new ArrayList<>();
 
 }
