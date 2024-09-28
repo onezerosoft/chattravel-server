@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import onezerosoft.chattravel.ChattravelApplication;
 import onezerosoft.chattravel.converter.ChatConverter;
 import onezerosoft.chattravel.domain.*;
 import onezerosoft.chattravel.domain.enums.CourseType;
@@ -16,14 +17,12 @@ import onezerosoft.chattravel.web.dto.placeDTO;
 import onezerosoft.chattravel.web.dto.regionDTO;
 import onezerosoft.chattravel.web.dto.travel.TravelCourseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.validation.MessageCodesResolver;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,8 +47,7 @@ public class ChatService {
 
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
-    @Autowired
-    private JsonParser jsonParser;
+
 
     public ChatCreateResponse createChat(ChatCreateRequest request) {
         regionDTO region = request.getRegion();
@@ -68,7 +66,7 @@ public class ChatService {
         Long styleId = style.getId();
         String userId = "guest"+styleId.toString();
 
-        log.info("1. 유저 아이디(여행 스타일) 생성: "+userId);
+        log.info("1. 유저 아이디(여행 스타일) 생성 완료: "+userId);
 
         // 2. 여행 코스 생성 (추천 모델 + OpenAI API 호출)
         // 여행지&숙박지 추천 모델 - prediction.py 스크립트 실행
@@ -88,6 +86,7 @@ public class ChatService {
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             predictApiJson = objectMapper.readTree(reader);
         } catch (Exception e) {
+            log.error("추천 모델 응답 실패 - prediction.py 응답 없음");
             e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
         }
 
@@ -106,7 +105,7 @@ public class ChatService {
                     .map(a -> a.get("Item").asText())
                     .collect(Collectors.joining(", "));
         }
-        log.info("2. 추천 여행지&숙소 생성");
+        log.info("2. 추천 여행지&숙소 생성 완료");
         log.info("여행지: "+place);
         log.info("숙소: "+accomodation);
 
@@ -124,13 +123,12 @@ public class ChatService {
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             courseApiJson = objectMapper.readTree(reader);
         } catch (Exception e) {
+            log.error("LLM 코스 생성 실패 - course_api.py 응답 없음");
             e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
         }
 
-
-        log.info("3. LLM 코스 생성");
+        log.info("3. LLM 코스 생성 완료");
         System.out.println(courseApiJson.toPrettyString());
-
 
         // 3. 채팅 및 메세지 생성
         Chat chat = Chat.builder()
@@ -171,14 +169,26 @@ public class ChatService {
     }
 
     public SendMessageResponse sendMessage(Integer chatId, SendMessageRequest request) {
+        String userMessage = request.getUserMessage();
+        String currentCourse = "";
+
+
         Optional<Chat> chatOptional = chatRepository.findById(Long.valueOf(chatId));
         if (chatOptional.isEmpty()){
             //예외처리
         }
         Chat chat = chatOptional.get();
-        String userMessage = request.getUserMessage();
 
-        // 현재 course를 jsonString 타입으로 전달
+        // 유저 메세지 저장
+        Message message = Message.builder()
+                .type(U_TEXT)
+                .message(userMessage)
+                .chat(chat)
+                .build();
+        message = messageRepository.save(message);
+
+
+        // 현재 course를 jsonString 타입으로 파일에 저장
         List<Course> currentCourses = currentCourseList(chat);
         List<courseDTO> courseList = new ArrayList<>();
         for (Course course : currentCourses) {
@@ -204,7 +214,6 @@ public class ChatService {
                     .build();
             courseList.add(dto);
         }
-
         TravelCourseResponse course = TravelCourseResponse.builder()
                 .SIDO(chat.getSido())
                 .SI(chat.getSi())
@@ -212,29 +221,84 @@ public class ChatService {
                 .days(currentCourses.size())
                 .courses(courseList)
                 .build();
-        String currentCourse = "";
 
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             currentCourse = objectMapper.writeValueAsString(course);
 
+            String path = "chattravel-recommend/src/result/course_args.txt";
+            FileWriter writer = new FileWriter(path);
+            //System.out.println("currentCourse: "+ currentCourse);
+            writer.write(currentCourse);
+            writer.close();
+            System.out.println("파일에 내용이 작성되었습니다.");
+
+
         } catch (Exception e){
             e.printStackTrace();
         }
 
-        log.info(currentCourse);
-//        // LLM 응답 생성 - chat_api.py 실행
-//        String scriptPath = "chattravel-recommend/openai/prediction.py";
-//
-//        List<String> scriptArgs = Arrays.asList(userMessage, currentCourse);
-//
-//        String result = pythonScriptRunner.runScript(scriptPath, scriptArgs);
-//        if (result == "") {
-//            log.error("LLM 코스 생성 실패 - chat_api.py 응답 없음");
-//        }
-//        JsonNode responseMessage = jsonParser.parse(result);
+        // LLM 응답 생성 - chat_api.py 실행
+        String scriptPath = "chattravel-recommend/src/openai/chat_api.py";
+        List<String> scriptArgs = Arrays.asList(userMessage);
 
-        SendMessageResponse response = chatConverter.toSendMessageResponse();
+        pythonScriptRunner.runScript(scriptPath, scriptArgs);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String filePath = "chattravel-recommend/src/result/chat_api_result.json";
+        JsonNode chatApiJson = null;
+
+        try (FileInputStream fis = new FileInputStream(new File(filePath));
+             InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+            chatApiJson = objectMapper.readTree(reader);
+        } catch (Exception e) {
+            log.error("LLM 응답메세지 생성 실패 - chat_api.py 응답 없음");
+            e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
+        }
+        log.info("챗봇 응답 생성 완료");
+        log.info(chatApiJson.toPrettyString());
+
+        String function = chatApiJson.get("function").asText();
+        List<Message> responseMessageList = new ArrayList<>();
+
+        log.info("function: "+function);
+        if (function == "1" || function == "2" || function == "3"){
+            // 코스 변경 있음 -> 메시지 두 개 생성
+            String text = "원하는 대로 코스를 다시 만들어 봤어!";
+            Message message1 = Message.builder()
+                    .type(C_TEXT)
+                    .message(text)
+                    .chat(chat)
+                    .build();
+            message1 = messageRepository.save(message1);
+
+            Message message2 = Message.builder()
+                    .type(C_COURSE)
+                    .chat(chat)
+                    .build();
+
+            List<Course> mappingCourse = mappingCourse(chatApiJson.get("response"), message2);
+            log.info(mappingCourse.toString());
+            message2.setCourseList(mappingCourse);
+            message2 = messageRepository.save(message2);
+
+            responseMessageList.add(message1);
+            responseMessageList.add(message2);
+
+        } else if (function == "4" || function == "5" || function == "6") {
+            // 코스 변경 없음 - 메세지만
+            String chatResponse = chatApiJson.get("response").asText();
+            message = Message.builder()
+                    .type(C_TEXT)
+                    .message(chatResponse)
+                    .chat(chat)
+                    .build();
+            message = messageRepository.save(message);
+            responseMessageList.add(message);
+        }
+
+        SendMessageResponse response = chatConverter.toSendMessageResponse(chat, responseMessageList);
         return response;
     }
 
@@ -332,7 +396,6 @@ public class ChatService {
                     }
                 }
 
-
                 Place place = Place.builder()
                         .course(course)
                         .placename(placename)
@@ -343,7 +406,6 @@ public class ChatService {
                         .courseOrder(index)
                         .build();
                 placeList.add(place);
-                log.info(place.toString());
                 index++;
             }
             course.setPlaceList(placeList);
@@ -368,5 +430,54 @@ public class ChatService {
                 .sorted(Comparator.comparing(Course::getDay))
                 .collect(Collectors.toList());
 
+    }
+
+    // chat-api 응답 매핑
+    private List<Course> mappingCourse(JsonNode courseJson, Message message){
+        Integer days = courseJson.get("days").asInt();
+        JsonNode courses = courseJson.path("courses"); // "courses" 리스트 가져오기
+        log.info(courses.toPrettyString());
+        List<Course> courseList = new ArrayList<>();
+        for (JsonNode courseNode : courses) {
+            Integer day = courseNode.get("day").asInt();
+
+            CourseType coursetype = null;
+            if (days == 1) {
+                coursetype = ONEDAY;
+            } else if (day == 0) {
+                coursetype = FIRST;
+            } else if (day == days - 1) {
+                coursetype = LAST;
+            } else {
+                coursetype = MIDDLE;
+            }
+
+            Course course = Course.builder()
+                    .courseType(coursetype)
+                    .message(message)
+                    .day(day)
+                    .build();
+
+            JsonNode places = courseNode.path("places");
+            List<Place> placeList = new ArrayList<>();
+            int index = 1;
+            for (JsonNode plceNode : places) {
+                Place place = Place.builder()
+                        .course(course)
+                        .placename(plceNode.get("placeName").asText())
+                        .type(plceNode.get("type").asText())
+                        .comment(plceNode.get("comment").asText())
+                        .address(plceNode.get("address").asText())
+                        //.ratings()
+                        .courseOrder(index)
+                        .build();
+                placeList.add(place);
+                index++;
+            }
+            course.setPlaceList(placeList);
+            courseList.add(course);
+        }
+
+        return courseList;
     }
 }
