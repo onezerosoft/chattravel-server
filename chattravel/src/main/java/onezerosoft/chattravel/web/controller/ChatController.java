@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/chat")
-//@CrossOrigin(origins = "http://localhost:5173")
-@CrossOrigin(origins = "https://www.chattravel.pro")
+@CrossOrigin(origins = {"http://localhost:5173", "https://www/chattravel.pro"})
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
