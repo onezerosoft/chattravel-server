@@ -11,7 +11,8 @@ import onezerosoft.chattravel.web.dto.travel.TravelCourseResponse;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://www.chattravel.pro")
 @RequestMapping("/travel")
 @RequiredArgsConstructor
 public class TravelController {
