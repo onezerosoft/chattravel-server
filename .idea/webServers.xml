@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="e46f8594-83bd-45ae-a5bc-92eb34bba96e" name="chattravel">
+        <fileTransfer accessType="SFTP" host="3.35.99.159" port="22" sshConfigId="c7042144-ea1b-4101-b847-b2f40b72b69c" sshConfig="ubuntu@3.35.99.159:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

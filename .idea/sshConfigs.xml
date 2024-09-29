@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig host="54.180.165.226" id="cd713bc1-04a5-4ed3-adb6-a6795ddaa35f" keyPath="E:\Downloads\onezerosoft.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" useOpenSSHConfig="true" />
+      <sshConfig host="3.35.99.159" id="c7042144-ea1b-4101-b847-b2f40b72b69c" keyPath="E:\Downloads\onezerosoft.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" useOpenSSHConfig="true" />
+    </configs>
+  </component>
+</project>
