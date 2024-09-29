@@ -13,4 +13,6 @@ public class placeDTO {
     private String placeName;
     private String comment;
     private String address;
+    private String url;
+    private String ratings;
 }

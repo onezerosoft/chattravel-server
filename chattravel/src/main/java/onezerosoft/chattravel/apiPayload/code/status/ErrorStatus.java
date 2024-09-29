@@ -16,10 +16,15 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
+    // api 호출 실패 응답
+    MODEL_CALL_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "SERVER5001","추천모델 호출에 실패하였습니다."),
+    OPENAI_API_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "SERVER5002","OPENAI 응답 생성이 실패하였습니다."),
 
-    // 멤버 관련 응답
+    // CHAT 관련 응답
 
-    // ~~~ 관련 응답 ....
+
+    // TRAVEL 관련 응답
+
 
     // 테스트 응답
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트");

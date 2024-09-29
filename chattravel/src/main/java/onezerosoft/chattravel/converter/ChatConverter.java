@@ -58,6 +58,8 @@ public class ChatConverter {
                                 .placeName(place.getPlacename())
                                 .comment(place.getComment())
                                 .address(place.getAddress())
+                                .url(place.getUrl())
+                                .ratings(place.getRatings())
                                 .build();
                         placeList.add(dto);
                     }
@@ -118,6 +120,8 @@ public class ChatConverter {
                                 .placeName(place.getPlacename())
                                 .comment(place.getComment())
                                 .address(place.getAddress())
+                                .url(place.getUrl())
+                                .ratings(place.getRatings())
                                 .build();
                         placeList.add(dto);
                     }

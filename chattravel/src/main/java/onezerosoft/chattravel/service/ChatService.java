@@ -5,6 +5,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onezerosoft.chattravel.ChattravelApplication;
+import onezerosoft.chattravel.apiPayload.code.status.ErrorStatus;
+import onezerosoft.chattravel.apiPayload.exception.handler.TempHandler;
 import onezerosoft.chattravel.converter.ChatConverter;
 import onezerosoft.chattravel.domain.*;
 import onezerosoft.chattravel.domain.enums.CourseType;
@@ -44,6 +46,7 @@ public class ChatService {
     private final TravelRepository travelRepository;
     private final CourseRepository courseRepository;
     private final ChatConverter chatConverter;
+    private static final String base_path = "chattravel-recommend/src/";
 
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
@@ -70,7 +73,7 @@ public class ChatService {
 
         // 2. 여행 코스 생성 (추천 모델 + OpenAI API 호출)
         // 여행지&숙박지 추천 모델 - prediction.py 스크립트 실행
-        String scriptPath = "chattravel-recommend/src/prediction.py";
+        String scriptPath = base_path+"prediction.py";
         String si = String.join(",", region.si);
         String travelStyle = styleList.stream().map(String::valueOf).collect(Collectors.joining(","));
         List<String> scriptArgs = Arrays.asList(userId, region.sido, si, days.toString(), travelStyle);
@@ -79,52 +82,74 @@ public class ChatService {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        String filePath = "chattravel-recommend/src/result/prediction_result.json";
+        String predict_result_file = base_path+String.format("result/prediction_result_%s.json",userId);
         JsonNode predictApiJson = null;
 
-        try (FileInputStream fis = new FileInputStream(new File(filePath));
+        File f1 = new File(predict_result_file);
+        try (FileInputStream fis = new FileInputStream(f1);
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             predictApiJson = objectMapper.readTree(reader);
         } catch (Exception e) {
             log.error("추천 모델 응답 실패 - prediction.py 응답 없음");
             e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
+            throw new TempHandler(ErrorStatus.MODEL_CALL_FAIL);
+
         }
 
-        JsonNode places = predictApiJson.get("place");
-        JsonNode accommodations = predictApiJson.get("accommodation");
-
-        String place = "";
-        if (places != null && places.isArray()) {
-            place = StreamSupport.stream(places.spliterator(), false)
-                    .map(p -> p.get("Item").asText())
-                    .collect(Collectors.joining(", "));
-        }
-        String accomodation = "";
-        if (accommodations != null && accommodations.isArray()) {
-            accomodation = StreamSupport.stream(accommodations.spliterator(), false)
-                    .map(a -> a.get("Item").asText())
-                    .collect(Collectors.joining(", "));
-        }
+//        JsonNode places = predictApiJson.get("place");
+//        JsonNode accommodations = predictApiJson.get("accommodation");
+//
+//        String place = "";
+//        if (places != null && places.isArray()) {
+//            place = StreamSupport.stream(places.spliterator(), false)
+//                    .map(p -> p.get("Item").asText())
+//                    .collect(Collectors.joining(", "));
+//        }
+//        String accomodation = "";
+//        if (accommodations != null && accommodations.isArray()) {
+//            accomodation = StreamSupport.stream(accommodations.spliterator(), false)
+//                    .map(a -> a.get("Item").asText())
+//                    .collect(Collectors.joining(", "));
+//        }
         log.info("2. 추천 여행지&숙소 생성 완료");
-        log.info("여행지: "+place);
-        log.info("숙소: "+accomodation);
-
+        log.info(predictApiJson.toPrettyString());
 
         // LLM 코스 생성 - course_api.py 스크립트 실행
         scriptPath = "chattravel-recommend/src/openai/course_api.py";
-        scriptArgs = Arrays.asList(days.toString(), place, accomodation,region.sido);
+        scriptArgs = Arrays.asList(days.toString(), region.sido, userId);
 
         pythonScriptRunner.runScript(scriptPath, scriptArgs);
 
-        filePath = "chattravel-recommend/src/result/course_api_result.json";
+        String course_result_file = base_path+String.format("result/course_api_result_%s.json", userId);
         JsonNode courseApiJson = null;
 
-        try (FileInputStream fis = new FileInputStream(new File(filePath));
+        File f2 = new File(course_result_file);
+        try (FileInputStream fis = new FileInputStream(f2);
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             courseApiJson = objectMapper.readTree(reader);
         } catch (Exception e) {
             log.error("LLM 코스 생성 실패 - course_api.py 응답 없음");
             e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
+            throw new TempHandler(ErrorStatus.OPENAI_API_FAIL);
+        }  finally {
+            // 파일 삭제 시도
+            if (f2.exists()) {
+                boolean isDeleted = f2.delete();
+                if (isDeleted) {
+                    log.info("파일이 성공적으로 삭제되었습니다: " + f2.getPath());
+                } else {
+                    log.warn("파일 삭제에 실패했습니다: " + f2.getPath());
+                }
+            }
+        }
+        // 남은 파일 삭제 시도
+        if (f1.exists()) {
+            boolean isDeleted = f1.delete();
+            if (isDeleted) {
+                log.info("파일이 성공적으로 삭제되었습니다: " + f1.getPath());
+            } else {
+                log.warn("파일 삭제에 실패했습니다: " + f1.getPath());
+            }
         }
 
         log.info("3. LLM 코스 생성 완료");
@@ -204,6 +229,8 @@ public class ChatService {
                         .placeName(place.getPlacename())
                         .comment(place.getComment())
                         .address(place.getAddress())
+                        .url(place.getUrl())
+                        .ratings(place.getRatings())
                         .build();
                 placeList.add(dto);
             }
@@ -222,40 +249,62 @@ public class ChatService {
                 .courses(courseList)
                 .build();
 
+        String arg_path = base_path+String.format("result/course_args_%d.txt", chatId);
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             currentCourse = objectMapper.writeValueAsString(course);
 
-            String path = "chattravel-recommend/src/result/course_args.txt";
-            FileWriter writer = new FileWriter(path);
+            FileWriter writer = new FileWriter(arg_path);
             //System.out.println("currentCourse: "+ currentCourse);
             writer.write(currentCourse);
             writer.close();
             System.out.println("파일에 내용이 작성되었습니다.");
-
 
         } catch (Exception e){
             e.printStackTrace();
         }
 
         // LLM 응답 생성 - chat_api.py 실행
-        String scriptPath = "chattravel-recommend/src/openai/chat_api.py";
-        List<String> scriptArgs = Arrays.asList(userMessage);
+        String scriptPath = base_path+"openai/chat_api.py";
+        List<String> scriptArgs = Arrays.asList(userMessage, chatId.toString());
 
         pythonScriptRunner.runScript(scriptPath, scriptArgs);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        String filePath = "chattravel-recommend/src/result/chat_api_result.json";
+        String chat_result_file = base_path+String.format("result/chat_api_result_%d.json", chatId);
         JsonNode chatApiJson = null;
 
-        try (FileInputStream fis = new FileInputStream(new File(filePath));
+        File f = new File(chat_result_file);
+        try (FileInputStream fis = new FileInputStream(f);
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             chatApiJson = objectMapper.readTree(reader);
         } catch (Exception e) {
             log.error("LLM 응답메세지 생성 실패 - chat_api.py 응답 없음");
             e.printStackTrace();  // 파일이 없거나 JSON 형식이 잘못되었을 경우 예외 처리
+        } finally {
+            // 파일 삭제 시도
+            if (f.exists()) {
+                boolean isDeleted = f.delete();
+                if (isDeleted) {
+                    log.info("파일이 성공적으로 삭제되었습니다: " + f.getPath());
+                } else {
+                    log.warn("파일 삭제에 실패했습니다: " + f.getPath());
+                }
+            }
         }
+
+        // arg 파일 삭제
+        File f2 = new File(arg_path);
+        if (f2.exists()) {
+            boolean isDeleted = f2.delete();
+            if (isDeleted) {
+                log.info("파일이 성공적으로 삭제되었습니다: " + f2.getPath());
+            } else {
+                log.warn("파일 삭제에 실패했습니다: " + f2.getPath());
+            }
+        }
+
         log.info("챗봇 응답 생성 완료");
         log.info(chatApiJson.toPrettyString());
 
@@ -263,7 +312,7 @@ public class ChatService {
         List<Message> responseMessageList = new ArrayList<>();
 
         log.info("function: "+function);
-        if (function == "1" || function == "2" || function == "3"){
+        if (function.equals("1") || function.equals("2") || function.equals("3")){
             // 코스 변경 있음 -> 메시지 두 개 생성
             String text = "원하는 대로 코스를 다시 만들어 봤어!";
             Message message1 = Message.builder()
@@ -286,7 +335,7 @@ public class ChatService {
             responseMessageList.add(message1);
             responseMessageList.add(message2);
 
-        } else if (function == "4" || function == "5" || function == "6") {
+        } else if (function.equals("4") || function.equals("5") || function.equals("6")) {
             // 코스 변경 없음 - 메세지만
             String chatResponse = chatApiJson.get("response").asText();
             message = Message.builder()
@@ -377,10 +426,10 @@ public class ChatService {
             List<Place> placeList = new ArrayList<>();
             int index = 1;
             for(JsonNode placeNode : places){
-                String placename = placeNode.get("place").asText();  // place 값을 추출
-                String reason = placeNode.get("reason").asText();    // reason 값을 추출
+                if (index > 7){
+                    break;
+                }
                 String type = "";
-
                 // 장소 타입 - 여행지 / 숙소 / 식당 / 카페
                 if (index == 2 || index == 5){
                     type = "식당";
@@ -398,11 +447,12 @@ public class ChatService {
 
                 Place place = Place.builder()
                         .course(course)
-                        .placename(placename)
+                        .placename(placeNode.get("place").asText())
                         .type(type)
-                        .comment(reason)
-                        //.address()
-                        //.ratings()
+                        .comment(placeNode.get("reason").asText())
+                        .address(placeNode.get("address").asText())
+                        .url(placeNode.get("place_url").asText())
+                        .ratings(placeNode.get("ratings").asText())
                         .courseOrder(index)
                         .build();
                 placeList.add(place);
@@ -461,14 +511,15 @@ public class ChatService {
             JsonNode places = courseNode.path("places");
             List<Place> placeList = new ArrayList<>();
             int index = 1;
-            for (JsonNode plceNode : places) {
+            for (JsonNode placeNode : places) {
                 Place place = Place.builder()
                         .course(course)
-                        .placename(plceNode.get("placeName").asText())
-                        .type(plceNode.get("type").asText())
-                        .comment(plceNode.get("comment").asText())
-                        .address(plceNode.get("address").asText())
-                        //.ratings()
+                        .placename(placeNode.get("placeName").asText(""))
+                        .type(placeNode.get("type").asText(""))
+                        .comment(placeNode.get("comment").asText(""))
+                        .address(placeNode.get("address").asText(""))
+                        .url(placeNode.get("url").asText(""))
+                        .ratings(placeNode.get("ratings").asText(""))
                         .courseOrder(index)
                         .build();
                 placeList.add(place);
@@ -477,7 +528,6 @@ public class ChatService {
             course.setPlaceList(placeList);
             courseList.add(course);
         }
-
         return courseList;
     }
 }
