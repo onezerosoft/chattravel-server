@@ -8,12 +8,10 @@ import onezerosoft.chattravel.service.TravelService;
 import onezerosoft.chattravel.web.dto.chat.SendMessageResponse;
 import onezerosoft.chattravel.web.dto.travel.TravelCourseRequest;
 import onezerosoft.chattravel.web.dto.travel.TravelCourseResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/travel")
 @RequiredArgsConstructor
 public class TravelController {
