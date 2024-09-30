@@ -46,7 +46,7 @@ public class ChatService {
     private final TravelRepository travelRepository;
     private final CourseRepository courseRepository;
     private final ChatConverter chatConverter;
-    private static final String base_path = "/home/ubuntu/chattravel-recommend/src/";
+    private static final String base_path = "/home/ubuntu/chattravel-server/chattravel-recommend/src/";
 
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
