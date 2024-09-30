@@ -46,7 +46,7 @@ public class ChatService {
     private final TravelRepository travelRepository;
     private final CourseRepository courseRepository;
     private final ChatConverter chatConverter;
-    private static final String base_path = "chattravel-recommend/src/";
+    private static final String base_path = "/home/ubuntu/chattravel-recommend/src/";
 
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
@@ -73,6 +73,7 @@ public class ChatService {
 
         // 2. 여행 코스 생성 (추천 모델 + OpenAI API 호출)
         // 여행지&숙박지 추천 모델 - prediction.py 스크립트 실행
+
         String scriptPath = base_path+"prediction.py";
         String si = String.join(",", region.si);
         String travelStyle = styleList.stream().map(String::valueOf).collect(Collectors.joining(","));
