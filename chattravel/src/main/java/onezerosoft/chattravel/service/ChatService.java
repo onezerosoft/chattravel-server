@@ -306,6 +306,21 @@ public class ChatService {
             }
         }
 
+        if (chatApiJson == null){
+            // 대화 응답 생성 실패 오류 문구 반환
+            String text = "내가 잘 이해하지 못한 것 같아. 다시 설명해줄래? 일정을 조정 하거나, 여행지 정보를 알려주는 도움을 줄 수 있어!";
+            List<Message> responseMessageList = new ArrayList<>();
+            Message errorMessage = Message.builder()
+                    .type(C_TEXT)
+                    .message(text)
+                    .chat(chat)
+                    .build();
+            errorMessage = messageRepository.save(errorMessage);
+            responseMessageList.add(errorMessage);
+            SendMessageResponse response = chatConverter.toSendMessageResponse(chat, responseMessageList);
+            return response;
+        }
+
         log.info("챗봇 응답 생성 완료");
         log.info(chatApiJson.toPrettyString());
 

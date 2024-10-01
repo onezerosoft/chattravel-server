@@ -21,6 +21,7 @@ public enum ErrorStatus implements BaseErrorCode {
     OPENAI_API_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "SERVER5002","OPENAI 응답 생성이 실패하였습니다."),
 
     // CHAT 관련 응답
+    CHAT_API_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "SERVER5003","CHAT-API 호출에 실패하였습니다. (OPENAI 응답 없음)"),
 
 
     // TRAVEL 관련 응답
