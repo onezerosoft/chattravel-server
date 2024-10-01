@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onezerosoft.chattravel.ChattravelApplication;
 import onezerosoft.chattravel.apiPayload.code.status.ErrorStatus;
 import onezerosoft.chattravel.apiPayload.exception.handler.TempHandler;
 import onezerosoft.chattravel.converter.ChatConverter;
 import onezerosoft.chattravel.domain.*;
 import onezerosoft.chattravel.domain.enums.CourseType;
-import onezerosoft.chattravel.python.JsonParser;
 import onezerosoft.chattravel.python.PythonScriptRunner;
 import onezerosoft.chattravel.repository.*;
 import onezerosoft.chattravel.web.dto.chat.*;
@@ -19,16 +17,13 @@ import onezerosoft.chattravel.web.dto.placeDTO;
 import onezerosoft.chattravel.web.dto.regionDTO;
 import onezerosoft.chattravel.web.dto.travel.TravelCourseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.validation.MessageCodesResolver;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static onezerosoft.chattravel.domain.enums.ChatStatus.COMPLETE;
 import static onezerosoft.chattravel.domain.enums.ChatStatus.CREATE;
@@ -47,6 +42,7 @@ public class ChatService {
     private final CourseRepository courseRepository;
     private final ChatConverter chatConverter;
     private static final String base_path = "/home/ubuntu/chattravel-server/chattravel-recommend/src/";
+    //private static final String base_path =  "/onezerosoft/chattravel-server/chattravel-recommend/src/"; 인텔리제이 테스트 실행시
 
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
@@ -255,11 +251,15 @@ public class ChatService {
             ObjectMapper objectMapper = new ObjectMapper();
             currentCourse = objectMapper.writeValueAsString(course);
 
+            // 파일의 상위 디렉토리 생성
+            File file = new File(arg_path);
+            file.getParentFile().mkdirs();  // 상위 디렉토리 생성
+
             FileWriter writer = new FileWriter(arg_path);
             //System.out.println("currentCourse: "+ currentCourse);
             writer.write(currentCourse);
             writer.close();
-            System.out.println("파일에 내용이 작성되었습니다.");
+            log.info("arg_path: " + arg_path);
 
         } catch (Exception e){
             e.printStackTrace();
@@ -308,7 +308,7 @@ public class ChatService {
 
         if (chatApiJson == null){
             // 대화 응답 생성 실패 오류 문구 반환
-            String text = "내가 잘 이해하지 못한 것 같아. 다시 설명해줄래? 일정을 조정 하거나, 여행지 정보를 알려주는 도움을 줄 수 있어!";
+            String text = "내가 잘 이해하지 못한 것 같아. 다시 설명해줄래?\n 일정을 조정 하거나, 여행지 정보를 알려주는 도움을 줄 수 있어!";
             List<Message> responseMessageList = new ArrayList<>();
             Message errorMessage = Message.builder()
                     .type(C_TEXT)

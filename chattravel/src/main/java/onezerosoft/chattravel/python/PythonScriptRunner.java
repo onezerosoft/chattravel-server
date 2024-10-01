@@ -18,6 +18,7 @@ public class PythonScriptRunner {
             // 명령어 리스트에 Python 스크립트 경로와 인자 추가
             List<String> command = new ArrayList<>();
             command.add("/home/ubuntu/chattravel-server/chattravel-recommend/venv/bin/python");  // Python 실행 명령
+            //command.add("python");  // 로컬 Python 실행 명령
             command.add(scriptPath); // Python 스크립트 경로
 
             // 인자 리스트 추가
