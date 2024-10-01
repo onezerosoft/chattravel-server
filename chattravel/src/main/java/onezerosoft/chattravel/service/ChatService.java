@@ -116,7 +116,7 @@ public class ChatService {
         log.info(predictApiJson.toPrettyString());
 
         // LLM 코스 생성 - course_api.py 스크립트 실행
-        scriptPath = "chattravel-recommend/src/openai/course_api.py";
+        scriptPath = base_path+"openai/course_api.py";
         scriptArgs = Arrays.asList(days.toString(), region.sido, userId);
 
         pythonScriptRunner.runScript(scriptPath, scriptArgs);
