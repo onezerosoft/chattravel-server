@@ -306,7 +306,54 @@ public class ChatService {
             }
         }
 
-        if (chatApiJson == null){
+        try{
+            log.info("챗봇 응답 생성 완료");
+            log.info(chatApiJson.toPrettyString());
+
+            String function = chatApiJson.get("function").asText();
+            List<Message> responseMessageList = new ArrayList<>();
+
+            log.info("function: "+function);
+            if (function.equals("1") || function.equals("2") || function.equals("3")){
+                // 코스 변경 있음 -> 메시지 두 개 생성
+                String text = "원하는 대로 코스를 다시 만들어 봤어!";
+                Message message1 = Message.builder()
+                        .type(C_TEXT)
+                        .message(text)
+                        .chat(chat)
+                        .build();
+                message1 = messageRepository.save(message1);
+
+                Message message2 = Message.builder()
+                        .type(C_COURSE)
+                        .chat(chat)
+                        .build();
+
+                List<Course> mappingCourse = mappingCourse(chatApiJson.get("response"), message2);
+                log.info(mappingCourse.toString());
+                message2.setCourseList(mappingCourse);
+                message2 = messageRepository.save(message2);
+
+                responseMessageList.add(message1);
+                responseMessageList.add(message2);
+
+            } else if (function.equals("4") || function.equals("5") || function.equals("6")) {
+                // 코스 변경 없음 - 메세지만
+                String chatResponse = chatApiJson.get("response").asText();
+                message = Message.builder()
+                        .type(C_TEXT)
+                        .message(chatResponse)
+                        .chat(chat)
+                        .build();
+                message = messageRepository.save(message);
+                responseMessageList.add(message);
+            }
+
+            SendMessageResponse response = chatConverter.toSendMessageResponse(chat, responseMessageList);
+            return response;
+
+        } catch (Exception e){
+            e.printStackTrace();
             // 대화 응답 생성 실패 오류 문구 반환
             String text = "내가 잘 이해하지 못한 것 같아. 다시 설명해줄래?\n 일정을 조정 하거나, 여행지 정보를 알려주는 도움을 줄 수 있어!";
             List<Message> responseMessageList = new ArrayList<>();
@@ -321,50 +368,6 @@ public class ChatService {
             return response;
         }
 
-        log.info("챗봇 응답 생성 완료");
-        log.info(chatApiJson.toPrettyString());
-
-        String function = chatApiJson.get("function").asText();
-        List<Message> responseMessageList = new ArrayList<>();
-
-        log.info("function: "+function);
-        if (function.equals("1") || function.equals("2") || function.equals("3")){
-            // 코스 변경 있음 -> 메시지 두 개 생성
-            String text = "원하는 대로 코스를 다시 만들어 봤어!";
-            Message message1 = Message.builder()
-                    .type(C_TEXT)
-                    .message(text)
-                    .chat(chat)
-                    .build();
-            message1 = messageRepository.save(message1);
-
-            Message message2 = Message.builder()
-                    .type(C_COURSE)
-                    .chat(chat)
-                    .build();
-
-            List<Course> mappingCourse = mappingCourse(chatApiJson.get("response"), message2);
-            log.info(mappingCourse.toString());
-            message2.setCourseList(mappingCourse);
-            message2 = messageRepository.save(message2);
-
-            responseMessageList.add(message1);
-            responseMessageList.add(message2);
-
-        } else if (function.equals("4") || function.equals("5") || function.equals("6")) {
-            // 코스 변경 없음 - 메세지만
-            String chatResponse = chatApiJson.get("response").asText();
-            message = Message.builder()
-                    .type(C_TEXT)
-                    .message(chatResponse)
-                    .chat(chat)
-                    .build();
-            message = messageRepository.save(message);
-            responseMessageList.add(message);
-        }
-
-        SendMessageResponse response = chatConverter.toSendMessageResponse(chat, responseMessageList);
-        return response;
     }
 
     public SaveTravelResponse saveTravel(Integer chatId, SaveTravelRequest request) {
