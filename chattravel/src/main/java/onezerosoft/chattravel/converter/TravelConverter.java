@@ -30,7 +30,7 @@ public class TravelConverter {
             for (Place place : places) {
                 placeDTO dto = placeDTO.builder()
                         .placeId(place.getId().intValue())
-                        .type(place.getType())
+                        .placeType(place.getType())
                         .placeName(place.getPlacename())
                         .comment(place.getComment())
                         .address(place.getAddress())

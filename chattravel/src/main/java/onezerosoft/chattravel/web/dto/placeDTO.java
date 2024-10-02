@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class placeDTO {
     private Integer placeId;
-    private String type;
+    private String placeType;
     private String placeName;
     private String comment;
     private String address;
