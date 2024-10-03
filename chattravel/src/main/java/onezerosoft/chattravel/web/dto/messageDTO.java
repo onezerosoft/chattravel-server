@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 public class messageDTO {
     private Integer messageId;
-    private String type;
+    private String messageType;
     private contentDTO content;
     private LocalDateTime createdAt;
 

@@ -77,7 +77,7 @@ public class ChatConverter {
 
             messageDTO dto = messageDTO.builder()
                     .messageId(message.getId().intValue())
-                    .type(message.getType().toString())
+                    .messageType(message.getType().toString())
                     .content(content)
                     .createdAt(message.getCreatedAt())
                     .build();
@@ -139,7 +139,7 @@ public class ChatConverter {
 
             messageDTO dto = messageDTO.builder()
                     .messageId(message.getId().intValue())
-                    .type(message.getType().toString())
+                    .messageType(message.getType().toString())
                     .content(content)
                     .createdAt(message.getCreatedAt())
                     .build();
