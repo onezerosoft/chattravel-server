@@ -316,13 +316,6 @@ public class ChatService {
             log.info("function: "+function);
             if (function.equals("1") || function.equals("2") || function.equals("3")){
                 // 코스 변경 있음 -> 메시지 두 개 생성
-                String text = "원하는 대로 코스를 다시 만들어 봤어!";
-                Message message1 = Message.builder()
-                        .type(C_TEXT)
-                        .message(text)
-                        .chat(chat)
-                        .build();
-                message1 = messageRepository.save(message1);
 
                 Message message2 = Message.builder()
                         .type(C_COURSE)
@@ -332,6 +325,14 @@ public class ChatService {
                 List<Course> mappingCourse = mappingCourse(chatApiJson.get("response"), message2);
                 log.info(mappingCourse.toString());
                 message2.setCourseList(mappingCourse);
+
+                String text = "원하는 대로 코스를 다시 만들어 봤어!";
+                Message message1 = Message.builder()
+                        .type(C_TEXT)
+                        .message(text)
+                        .chat(chat)
+                        .build();
+                message1 = messageRepository.save(message1);
                 message2 = messageRepository.save(message2);
 
                 responseMessageList.add(message1);
