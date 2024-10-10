@@ -47,7 +47,6 @@ public class ChatService {
     @Autowired
     private PythonScriptRunner pythonScriptRunner;
 
-
     public ChatCreateResponse createChat(ChatCreateRequest request) {
         regionDTO region = request.getRegion();
         Integer days = request.getDays();
@@ -93,27 +92,12 @@ public class ChatService {
 
         }
 
-//        JsonNode places = predictApiJson.get("place");
-//        JsonNode accommodations = predictApiJson.get("accommodation");
-//
-//        String place = "";
-//        if (places != null && places.isArray()) {
-//            place = StreamSupport.stream(places.spliterator(), false)
-//                    .map(p -> p.get("Item").asText())
-//                    .collect(Collectors.joining(", "));
-//        }
-//        String accomodation = "";
-//        if (accommodations != null && accommodations.isArray()) {
-//            accomodation = StreamSupport.stream(accommodations.spliterator(), false)
-//                    .map(a -> a.get("Item").asText())
-//                    .collect(Collectors.joining(", "));
-//        }
         log.info("2. 추천 여행지&숙소 생성 완료");
         log.info(predictApiJson.toPrettyString());
 
         // LLM 코스 생성 - course_api.py 스크립트 실행
         scriptPath = base_path+"openai/course_api.py";
-        scriptArgs = Arrays.asList(days.toString(), region.sido, userId);
+        scriptArgs = Arrays.asList(userId, region.sido, si, days.toString());
 
         pythonScriptRunner.runScript(scriptPath, scriptArgs);
 
