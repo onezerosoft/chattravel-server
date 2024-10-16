@@ -519,7 +519,7 @@ public class ChatService {
                 Place place = Place.builder()
                         .course(course)
                         .placename(placeNode.get("placeName").asText(""))
-                        .type(placeNode.get("type").asText(""))
+                        .type(placeNode.get("placeType").asText(""))
                         .comment(placeNode.get("comment").asText(""))
                         .address(placeNode.get("address").asText(""))
                         .url(placeNode.get("url").asText(""))
