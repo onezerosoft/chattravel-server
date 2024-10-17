@@ -24,6 +24,10 @@ public class Place extends BaseEntity {
 
     private String address;
 
+    private String sido;
+
+    private String si;
+
     private String url;
 
     private Integer courseOrder; // 코스 내 순서

@@ -76,6 +76,8 @@ public class ChatService {
 
         pythonScriptRunner.runScript(scriptPath, scriptArgs);
 
+        log.info("preiction.py 호출 완료");
+
         ObjectMapper objectMapper = new ObjectMapper();
 
         String predict_result_file = base_path+String.format("result/prediction_result_%s.json",userId);
@@ -140,6 +142,7 @@ public class ChatService {
         Chat chat = Chat.builder()
                 .username(userId)
                 .sido(region.sido)
+                .si(si)
                 .status(CREATE)
                 .chatname(courseApiJson.get("courseTitle").asText())
                 .build();
@@ -312,7 +315,7 @@ public class ChatService {
 
                 String text = "원하는 대로 코스를 다시 만들어 봤어!";
                 Message message1 = Message.builder()
-                        .type(C_TEXT)
+                        .type(C_COMMON)
                         .message(text)
                         .chat(chat)
                         .build();
@@ -343,7 +346,7 @@ public class ChatService {
             String text = "내가 잘 이해하지 못한 것 같아. 다시 설명해줄래?\n 일정을 조정 하거나, 여행지 정보를 알려주는 도움을 줄 수 있어!";
             List<Message> responseMessageList = new ArrayList<>();
             Message errorMessage = Message.builder()
-                    .type(C_TEXT)
+                    .type(C_COMMON)
                     .message(text)
                     .chat(chat)
                     .build();
@@ -525,6 +528,8 @@ public class ChatService {
                         .url(placeNode.get("url").asText(""))
                         .ratings(placeNode.get("ratings").asText(""))
                         .courseOrder(index)
+                        .sido(placeNode.get("SIDO").asText(""))
+                        .si(placeNode.get("SI").asText(""))
                         .build();
                 placeList.add(place);
                 index++;
