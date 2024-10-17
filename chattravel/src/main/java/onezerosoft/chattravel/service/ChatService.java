@@ -215,8 +215,8 @@ public class ChatService {
                         .address(place.getAddress())
                         .url(place.getUrl())
                         .ratings(place.getRatings())
-                        .SI(place.getSi())
-                        .SIDO(place.getSido())
+                        .SI(Optional.ofNullable(place.getSi()).orElse(""))
+                        .SIDO(Optional.ofNullable(place.getSido()).orElse(""))
                         .build();
                 placeList.add(dto);
             }
@@ -462,6 +462,8 @@ public class ChatService {
                         .address(placeNode.get("address").asText())
                         .url(placeNode.get("place_url").asText())
                         .ratings(placeNode.get("ratings").asText())
+                        .si(placeNode.get("SI").asText())
+                        .sido(placeNode.get("SIDO").asText())
                         .courseOrder(index)
                         .build();
                 placeList.add(place);
@@ -530,8 +532,8 @@ public class ChatService {
                         .url(placeNode.get("url").asText(""))
                         .ratings(placeNode.get("ratings").asText(""))
                         .courseOrder(index)
-                        .sido(placeNode.get("SIDO").asText(""))
-                        .si(placeNode.get("SI").asText(""))
+                        .sido(placeNode.get("sido").asText(""))
+                        .si(placeNode.get("si").asText(""))
                         .build();
                 placeList.add(place);
                 index++;
