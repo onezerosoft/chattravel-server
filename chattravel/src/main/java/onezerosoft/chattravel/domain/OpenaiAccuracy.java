@@ -9,9 +9,10 @@ import onezerosoft.chattravel.domain.common.BaseEntity;
 @Setter
 public class OpenaiAccuracy extends BaseEntity {
     @Id
-    private Long id = 1L;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private Integer accuracy;
-    private Integer ResponseCount; // 총 유저평가 횟수
+    private Integer ResponseCount; // 총 유저 평가 횟수
 
 }
