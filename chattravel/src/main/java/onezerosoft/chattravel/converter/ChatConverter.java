@@ -101,7 +101,7 @@ public class ChatConverter {
             // 메세지 타입별 콘텐츠 매핑
             SendType type = message.getType();
             contentDTO content = null;
-            if (type == C_TEXT || type == U_TEXT) {
+            if (type == C_TEXT || type == U_TEXT || type == C_COMMON) {
                 content = contentDTO.builder()
                         .message(message.getMessage())
                         .build();
