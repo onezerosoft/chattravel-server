@@ -15,4 +15,6 @@ public class placeDTO {
     private String address;
     private String url;
     private String ratings;
+    private String SIDO;
+    private String SI;
 }

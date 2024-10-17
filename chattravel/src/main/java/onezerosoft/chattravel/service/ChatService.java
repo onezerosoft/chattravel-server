@@ -215,6 +215,8 @@ public class ChatService {
                         .address(place.getAddress())
                         .url(place.getUrl())
                         .ratings(place.getRatings())
+                        .SI(place.getSi())
+                        .SIDO(place.getSido())
                         .build();
                 placeList.add(dto);
             }

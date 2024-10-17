@@ -36,6 +36,8 @@ public class TravelConverter {
                         .address(place.getAddress())
                         .url(place.getUrl())
                         .ratings(place.getRatings())
+                        .SIDO(place.getSido())
+                        .SI(place.getSi())
                         .build();
                 placeList.add(dto);
             }
