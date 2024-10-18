@@ -76,6 +76,12 @@ public class ChatConverter {
                         .courses(courseList)
                         .build();
             }
+            // content가 계속 null인 경우 예외처리
+            if (content == null){
+                content = contentDTO.builder()
+                        .message(message.getMessage())
+                        .build();
+            }
 
             messageDTO dto = messageDTO.builder()
                     .messageId(message.getId().intValue())
@@ -138,6 +144,12 @@ public class ChatConverter {
                 }
                 content = contentDTO.builder()
                         .courses(courseList)
+                        .build();
+            }
+            // content가 계속 null인 경우 예외처리
+            if (content == null){
+                content = contentDTO.builder()
+                        .message(message.getMessage())
                         .build();
             }
 
