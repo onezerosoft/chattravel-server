@@ -7,6 +7,10 @@ import onezerosoft.chattravel.domain.common.BaseEntity;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Table(name = "current_score")
 public class CurrentScore extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
