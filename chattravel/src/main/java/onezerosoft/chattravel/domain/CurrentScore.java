@@ -7,12 +7,14 @@ import onezerosoft.chattravel.domain.common.BaseEntity;
 @Entity
 @Getter
 @Setter
-public class OpenaiAccuracy extends BaseEntity {
+public class CurrentScore extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Integer accuracy;
-    private Integer ResponseCount; // 총 유저 평가 횟수
 
+    private Integer ReactionCount; // 총 유저 평가 횟수
+
+    private Integer CourseChangeCount; // 총 코스 변경 횟수
 }
