@@ -1,5 +1,5 @@
 package onezerosoft.chattravel.domain.enums;
 
-public enum UserResponse {
+public enum UserReaction {
     POSITIVE, NEGATIVE
 }

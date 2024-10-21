@@ -3,9 +3,8 @@ package onezerosoft.chattravel.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import onezerosoft.chattravel.domain.common.BaseEntity;
-import onezerosoft.chattravel.domain.enums.CourseType;
 import onezerosoft.chattravel.domain.enums.SendType;
-import onezerosoft.chattravel.domain.enums.UserResponse;
+import onezerosoft.chattravel.domain.enums.UserReaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,5 +33,5 @@ public class Message extends BaseEntity {
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
-    private UserResponse userResponse;
+    private UserReaction userResponse;
 }
