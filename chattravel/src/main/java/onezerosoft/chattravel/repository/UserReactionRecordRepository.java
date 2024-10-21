@@ -10,5 +10,5 @@ import java.util.Optional;
 @Transactional
 @Repository
 public interface UserReactionRecordRepository extends JpaRepository<UserReactionRecord, Long> {
-    Optional<UserReactionRecord> findByMessageId();
+    Optional<UserReactionRecord> findByMessageId(Long messageId);
 }
