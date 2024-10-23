@@ -26,6 +26,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // TRAVEL 관련 응답
 
+    // FEEDBACK 관련 응답
+    INVALID_MESSAGE_FEEDBACK_REQUEST(HttpStatus.INTERNAL_SERVER_ERROR, "SERVER5004","C_COURSE / C_TEXT 타입만 피드백 요청이 가능합니다."),
+
+
 
     // 테스트 응답
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트");

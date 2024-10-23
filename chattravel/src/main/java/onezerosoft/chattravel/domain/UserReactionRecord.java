@@ -19,7 +19,7 @@ public class UserReactionRecord extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long messageId;
+    private Integer messageId;
 
     private UserReaction userReaction;
 
