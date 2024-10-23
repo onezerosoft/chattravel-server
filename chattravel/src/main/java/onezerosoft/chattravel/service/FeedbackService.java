@@ -56,7 +56,7 @@ public class FeedbackService {
             record.setIsValid("N");
             userReactionRecordRepository.save(record);
 
-            message.setUserResponse(null);
+            message.setUserReaction(null);
             messageRepository.save(message);
         }
 
@@ -69,7 +69,7 @@ public class FeedbackService {
                     .build();
             userReactionRecordRepository.save(record);
 
-            message.setUserResponse(POSITIVE);
+            message.setUserReaction(POSITIVE);
             messageRepository.save(message);
         }
         if (request.getReaction().equals("N")){
@@ -80,7 +80,7 @@ public class FeedbackService {
                     .build();
             userReactionRecordRepository.save(record);
 
-            message.setUserResponse(NEGATIVE);
+            message.setUserReaction(NEGATIVE);
             messageRepository.save(message);
         }
 

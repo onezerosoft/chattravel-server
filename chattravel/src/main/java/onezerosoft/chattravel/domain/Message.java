@@ -33,5 +33,5 @@ public class Message extends BaseEntity {
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
-    private UserReaction userResponse;
+    private UserReaction userReaction;
 }
