@@ -8,7 +8,6 @@ import onezerosoft.chattravel.apiPayload.exception.handler.TempHandler;
 import onezerosoft.chattravel.domain.CurrentScore;
 import onezerosoft.chattravel.domain.Message;
 import onezerosoft.chattravel.domain.UserReactionRecord;
-import onezerosoft.chattravel.domain.enums.UserReaction;
 import onezerosoft.chattravel.repository.CourseChangeRecordRepository;
 import onezerosoft.chattravel.repository.CurrentScoreRepository;
 import onezerosoft.chattravel.repository.MessageRepository;
@@ -94,7 +93,7 @@ public class FeedbackService {
     }
 
     public CurrentScoreResponse getCurrentScore(){
-        CurrentScore currentScore = currentScoreRepository.findFirstByOrderByCreatedAtDesc();
+        CurrentScore currentScore = currentScoreRepository.findFirstByOrderByIdDesc();
         return CurrentScoreResponse.builder()
                 .currentScore(currentScore.getAccuracy())
                 .createdAt(currentScore.getCreatedAt())

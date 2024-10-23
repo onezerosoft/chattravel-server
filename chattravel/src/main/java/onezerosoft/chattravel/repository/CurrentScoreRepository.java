@@ -13,4 +13,6 @@ import java.util.Optional;
 public interface CurrentScoreRepository extends JpaRepository<CurrentScore, Long> {
     CurrentScore findFirstByOrderByCreatedAtDesc();
 
+    CurrentScore findFirstByOrderByIdDesc();
+
 }
