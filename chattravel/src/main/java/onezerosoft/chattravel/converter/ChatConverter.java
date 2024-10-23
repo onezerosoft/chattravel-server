@@ -87,6 +87,7 @@ public class ChatConverter {
                     .messageId(message.getId().intValue())
                     .messageType(message.getType().toString())
                     .content(content)
+                    .reaction(message.getUserReaction())
                     .createdAt(message.getCreatedAt())
                     .build();
             messageList.add(dto);
