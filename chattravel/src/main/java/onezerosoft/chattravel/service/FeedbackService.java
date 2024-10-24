@@ -5,21 +5,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onezerosoft.chattravel.apiPayload.code.status.ErrorStatus;
 import onezerosoft.chattravel.apiPayload.exception.handler.TempHandler;
-import onezerosoft.chattravel.domain.CourseChangeRecord;
-import onezerosoft.chattravel.domain.CurrentScore;
-import onezerosoft.chattravel.domain.Message;
-import onezerosoft.chattravel.domain.UserReactionRecord;
-import onezerosoft.chattravel.repository.CourseChangeRecordRepository;
-import onezerosoft.chattravel.repository.CurrentScoreRepository;
-import onezerosoft.chattravel.repository.MessageRepository;
-import onezerosoft.chattravel.repository.UserReactionRecordRepository;
+import onezerosoft.chattravel.domain.*;
+import onezerosoft.chattravel.repository.*;
 import onezerosoft.chattravel.web.dto.react.CurrentScoreResponse;
 import onezerosoft.chattravel.web.dto.react.UserReactionRequest;
 import onezerosoft.chattravel.web.dto.react.UserReactionResponse;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
+import static onezerosoft.chattravel.domain.enums.ChatStatus.COMPLETE;
 import static onezerosoft.chattravel.domain.enums.SendType.C_COURSE;
 import static onezerosoft.chattravel.domain.enums.SendType.C_TEXT;
 import static onezerosoft.chattravel.domain.enums.UserReaction.*;
@@ -34,6 +30,7 @@ public class FeedbackService {
     private final UserReactionRecordRepository userReactionRecordRepository;
     private final MessageRepository messageRepository;
     private final CourseChangeRecordRepository courseChangeRecordRepository;
+    private final ChatRepository chatRepository;
 
     public UserReactionResponse saveUserReaction(Integer messageId, UserReactionRequest request){
 
@@ -94,7 +91,7 @@ public class FeedbackService {
     }
 
     public CurrentScoreResponse getCurrentScore(){
-        CurrentScore currentScore = currentScoreRepository.findFirstByOrderByIdDesc();
+        CurrentScore currentScore = calculateCurrentScore();
         return CurrentScoreResponse.builder()
                 .currentScore(currentScore.getAccuracy())
                 .createdAt(currentScore.getCreatedAt())
@@ -114,17 +111,18 @@ public class FeedbackService {
 
     private CurrentScore calculateCurrentScore(){
 
-        // False Positive: 실제 값: Negative, 모델 생성: Positive
+        // 코스 순서 변경 요청 없이 생성 완료
+        int courseNotChangeCount = getCourseNotChangeCount();
+
+        // 코스 순서 변경 요청 있음
         int courseChangeCount = (int) courseChangeRecordRepository.count();
 
-        // True Positive - 실제 값: Positive, 모델 생성: Positive
-        float positive = (int) userReactionRecordRepository.countByIsValidAndUserReaction("Y",POSITIVE);
+        float positiveFeedback = (int) userReactionRecordRepository.countByIsValidAndUserReaction("Y",POSITIVE);
 
-        // False Positive - 실제 값: Negative, 모델 생성: Positive
-        int negative = (int) userReactionRecordRepository.countByIsValidAndUserReaction("Y",NEGATIVE);
+        int negativeFeedback = (int) userReactionRecordRepository.countByIsValidAndUserReaction("Y",NEGATIVE);
 
 
-        if (courseChangeCount + positive + negative == 0){
+        if (courseChangeCount + positiveFeedback + negativeFeedback == 0){
             return CurrentScore.builder()
                     .accuracy(0)
                     .ReactionCount(0)
@@ -133,15 +131,32 @@ public class FeedbackService {
         }
 
         // 정확도 계산 로직
-        int accuracy = (int)(positive / (courseChangeCount + positive + negative) * 100);
+        int accuracy = (int)((positiveFeedback + courseNotChangeCount) / (courseChangeCount + courseNotChangeCount + positiveFeedback + negativeFeedback) * 100);
 
         CurrentScore score = CurrentScore.builder()
                 .accuracy(accuracy)
-                .ReactionCount((int)positive + negative)
+                .ReactionCount((int)positiveFeedback + negativeFeedback)
                 .CourseChangeCount(courseChangeCount)
                 .build();
         currentScoreRepository.save(score);
 
         return score;
+    }
+
+    private int getCourseNotChangeCount(){
+
+        int courseNotChangeCount = 0;
+
+        // ChatStatus가 'COMPLETE'인 ChatList
+        List<Chat> completeChatList = chatRepository.findByStatus(COMPLETE);
+
+        for (Chat chat : completeChatList){
+            List<Message> messageList = messageRepository.findByChatAndType(chat, C_COURSE);
+            if (messageList.size() == 1){
+                courseNotChangeCount += 1;
+            }
+        }
+
+        return courseNotChangeCount;
     }
 }
