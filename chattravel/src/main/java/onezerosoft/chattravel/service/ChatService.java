@@ -35,6 +35,7 @@ import static onezerosoft.chattravel.domain.enums.CourseType.*;
 @Transactional
 @RequiredArgsConstructor
 public class ChatService {
+    private final FeedbackService feedbackService;
     private final ChatRepository chatRepository;
     private final TravelStyleRepository travelStyleRepository;
     private final MessageRepository messageRepository;
@@ -327,6 +328,11 @@ public class ChatService {
                 responseMessageList.add(message1);
                 responseMessageList.add(message2);
 
+                if (function.equals("3")){
+                    Message requestMessage = currentCourseMessage(chat);
+                    feedbackService.saveChangeCourseRequest(requestMessage.getId(), message2.getId(),userMessage);
+                }
+
             } else if (function.equals("4") || function.equals("5") || function.equals("6")) {
                 // 코스 변경 없음 - 메세지만
                 String chatResponse = chatApiJson.get("response").asText();
@@ -473,6 +479,18 @@ public class ChatService {
             courseList.add(course);
         }
         return courseList;
+    }
+
+    private Message currentCourseMessage(Chat chat){
+        List<Message> messages = chat.getMessageList();
+        Optional<Message> messageOptional = messages.stream()
+                .filter(m -> m.getType().equals(C_COURSE)) // 특정 type 필터링
+                .max(Comparator.comparing(Message::getCreatedAt)); // ID 값이 가장 큰 메시지 찾기
+
+        if (messageOptional.isEmpty()){
+            //예외처리
+        }
+        return messageOptional.get();
     }
 
     // 현재 채팅의 가장 최신 코스 리스트 반환

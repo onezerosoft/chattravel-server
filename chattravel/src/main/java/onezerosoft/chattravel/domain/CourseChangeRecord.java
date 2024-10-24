@@ -18,9 +18,9 @@ public class CourseChangeRecord extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer beforeCourseId;
+    private Long requestMessageId;
 
-    private Integer changedCourseId;
+    private Long responseMessageId;
 
     private String userMessage;
 

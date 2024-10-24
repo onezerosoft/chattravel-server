@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onezerosoft.chattravel.apiPayload.code.status.ErrorStatus;
 import onezerosoft.chattravel.apiPayload.exception.handler.TempHandler;
+import onezerosoft.chattravel.domain.CourseChangeRecord;
 import onezerosoft.chattravel.domain.CurrentScore;
 import onezerosoft.chattravel.domain.Message;
 import onezerosoft.chattravel.domain.UserReactionRecord;
@@ -98,6 +99,17 @@ public class FeedbackService {
                 .currentScore(currentScore.getAccuracy())
                 .createdAt(currentScore.getCreatedAt())
                 .build();
+    }
+
+    public CourseChangeRecord saveChangeCourseRequest(Long requestMessageId, Long responseMessageId, String userMessage){
+        CourseChangeRecord record = CourseChangeRecord.builder()
+                .requestMessageId(requestMessageId)
+                .responseMessageId(responseMessageId)
+                .userMessage(userMessage)
+                .build();
+        record = courseChangeRecordRepository.save(record);
+
+        return record;
     }
 
     private CurrentScore calculateCurrentScore(){
