@@ -26,6 +26,8 @@ import static onezerosoft.chattravel.domain.enums.UserReaction.*;
 @Transactional
 @RequiredArgsConstructor
 public class FeedbackService {
+    private static final int F1_SCORE = 55;
+
     private final CurrentScoreRepository currentScoreRepository;
     private final UserReactionRecordRepository userReactionRecordRepository;
     private final MessageRepository messageRepository;
@@ -83,17 +85,20 @@ public class FeedbackService {
 
         // 전체 유저 피드백 기반으로 현재 스코어 계산
         CurrentScore currentScore = calculateCurrentScore();
+        String score = String.format("%.2f", currentScore.getAccuracy());
 
         return UserReactionResponse.builder()
-                .currentScore(currentScore.getAccuracy())
+                .currentScore(score)
                 .createdAt(currentScore.getCreatedAt())
                 .build();
     }
 
     public CurrentScoreResponse getCurrentScore(){
         CurrentScore currentScore = calculateCurrentScore();
+        String score = String.format("%.2f", currentScore.getAccuracy());
+
         return CurrentScoreResponse.builder()
-                .currentScore(currentScore.getAccuracy())
+                .currentScore(score)
                 .createdAt(currentScore.getCreatedAt())
                 .build();
     }
@@ -131,7 +136,11 @@ public class FeedbackService {
         }
 
         // 정확도 계산 로직
-        int accuracy = (int)((positiveFeedback + courseNotChangeCount) / (courseChangeCount + courseNotChangeCount + positiveFeedback + negativeFeedback) * 100);
+        double feedbackScore = ((positiveFeedback + courseNotChangeCount) / (courseChangeCount + courseNotChangeCount + positiveFeedback + negativeFeedback) * 100);
+
+        double accuracy = (feedbackScore * 0.3) + (F1_SCORE * 0.7);
+
+        String currentScore = String.format("%.2f", accuracy);
 
         CurrentScore score = CurrentScore.builder()
                 .accuracy(accuracy)
