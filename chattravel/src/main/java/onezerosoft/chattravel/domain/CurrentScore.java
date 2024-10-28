@@ -16,7 +16,7 @@ public class CurrentScore extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer accuracy;
+    private double accuracy;
 
     private Integer ReactionCount; // 총 유저 평가 횟수
 

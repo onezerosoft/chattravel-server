@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurrentScoreResponse {
-    private Integer currentScore;
+    private String currentScore;
     private LocalDateTime createdAt;
 
 }
